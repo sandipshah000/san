@@ -1,0 +1,306 @@
+[
+    {
+        "id": "5129db23.cb5294",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "8df38163.5584c",
+        "type": "ui_form",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "label": "",
+        "group": "dc6b23c.0d373e",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "options": [
+            {
+                "label": "Date",
+                "value": "dt",
+                "type": "date",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "LV ActivePower (kW)",
+                "value": "ap",
+                "type": "number",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "Wind Speed (m/s)",
+                "value": "ws",
+                "type": "number",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "Wind Direction (°)",
+                "value": "wd",
+                "type": "number",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "Time",
+                "value": "t",
+                "type": "number",
+                "required": true,
+                "rows": null
+            }
+        ],
+        "formValue": {
+            "dt": "",
+            "ap": "",
+            "ws": "",
+            "wd": "",
+            "t": ""
+        },
+        "payload": "",
+        "submit": "submit",
+        "cancel": "cancel",
+        "topic": "",
+        "x": 50,
+        "y": 280,
+        "wires": [
+            [
+                "5fff09c7.3090c8",
+                "cf09563a.3c65b8"
+            ]
+        ]
+    },
+    {
+        "id": "5fff09c7.3090c8",
+        "type": "debug",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 230,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "cf09563a.3c65b8",
+        "type": "function",
+        "z": "5129db23.cb5294",
+        "name": "pre-token",
+        "func": "global.set(\"dt\",msg.payload.dt)\nglobal.set(\"ap\",msg.payload.ap)\nglobal.set(\"ws\",msg.payload.ws)\nglobal.set(\"wd\",msg.payload.wd)\nglobal.set(\"t\",msg.payload.t)\nvar apikey=\"5968219f-7ebe-4ae3-bede-1a030dc819e7\";\nmsg.headers={\"content-type\":\"application/x-www-form-urlencoded\"}\nmsg.payload={\"grant_type\":\"urn:ibm:params:oauth:grant-type:apikey\",\"apikey\":apikey}\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 240,
+        "y": 220,
+        "wires": [
+            [
+                "ef62bdc7.7f30a"
+            ]
+        ]
+    },
+    {
+        "id": "ef62bdc7.7f30a",
+        "type": "http request",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://iam.cloud.ibm.com/identity/token",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 392.00000381469727,
+        "y": 264.00000286102295,
+        "wires": [
+            [
+                "6a5cad80.eee394",
+                "a62dde46.80eb2"
+            ]
+        ]
+    },
+    {
+        "id": "6a5cad80.eee394",
+        "type": "debug",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "a62dde46.80eb2",
+        "type": "function",
+        "z": "5129db23.cb5294",
+        "name": "Pre Prediction",
+        "func": "var dt = global.get(\"dt\")\nvar ap = global.get(\"ap\")\nvar ws = global.get(\"ws\")\nvar wd = global.get(\"wd\")\nvar t = global.get(\"t\")\nvar token=msg.payload.access_token\nmsg.headers={'Content-Type': 'application/json',\"Authorization\":\"Bearer \"+token,\"Accept\":\"application/json\"}\nmsg.payload={\"input_data\":[{\"fields\": [[\"Date\", \"LV ActivePower (kW)\", \"Wind Speed (m/s)\", \"Wind Direction (°)\", \"Time\"]],\"values\": [[dt,ap,ws,wd,t]]}]}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 584.0000076293945,
+        "y": 216.0000021457672,
+        "wires": [
+            [
+                "7e76f764.914e68"
+            ]
+        ]
+    },
+    {
+        "id": "7e76f764.914e68",
+        "type": "http request",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://us-south.ml.cloud.ibm.com/ml/v4/deployments/b051c616-3e56-46e4-8a85-705d164bb12b/predictions?version=2020-09-01",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 810,
+        "y": 240,
+        "wires": [
+            [
+                "3f0231cf.73e77e",
+                "3fe7ab69.619cf4"
+            ]
+        ]
+    },
+    {
+        "id": "3f0231cf.73e77e",
+        "type": "debug",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 962.9999914169312,
+        "y": 324.00000381469727,
+        "wires": []
+    },
+    {
+        "id": "8527f189.21073",
+        "type": "inject",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 120,
+        "wires": [
+            [
+                "cf09563a.3c65b8"
+            ]
+        ]
+    },
+    {
+        "id": "e90dd6a.5bef528",
+        "type": "debug",
+        "z": "5129db23.cb5294",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 793.9999885559082,
+        "y": 107.0000057220459,
+        "wires": []
+    },
+    {
+        "id": "3fe7ab69.619cf4",
+        "type": "function",
+        "z": "5129db23.cb5294",
+        "name": "Parsing",
+        "func": "msg.payload=msg.payload.predictions[0].values[0][0]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 639.6000595092773,
+        "y": 148.00000190734863,
+        "wires": [
+            [
+                "e90dd6a.5bef528",
+                "4b4b74f5.2ce90c"
+            ]
+        ]
+    },
+    {
+        "id": "4b4b74f5.2ce90c",
+        "type": "ui_text",
+        "z": "5129db23.cb5294",
+        "group": "dc6b23c.0d373e",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "prediction",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 757.6000366210938,
+        "y": 381.20001220703125,
+        "wires": []
+    },
+    {
+        "id": "dc6b23c.0d373e",
+        "type": "ui_group",
+        "z": "",
+        "name": "New",
+        "tab": "31449132.043dae",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "31449132.043dae",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
